@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ICVEJ – Resultados</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
+</head>
+<body>
+    <header>
+        <h1>⚖️ ICVEJ – Relatório Personalizado</h1>
+        <p>Diagnóstico baseado nas suas respostas.</p>
+    </header>
+
+    <main>
+        <!-- Total e classificação -->
+        <section id="resultadoTotal">
+            <h2>
+                Seu ICVEJ: <span id="icvejValor"></span><span style="font-size:1.2rem;"> / 100</span>
+            </h2>
+            <div id="classificacao"></div>
+        </section>
+
+        <!-- Gráficos -->
+        <section id="comparativo">
+            <h3>Comparativo</h3>
+            <div class="graficos-container">
+                <div class="grafico-wrapper">
+                    <canvas id="radarChart" width="400" height="400"></canvas>
+                </div>
+                <div class="grafico-wrapper">
+                    <canvas id="barrasChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lacunas -->
+        <section id="lacunas">
+            <h3>Lacunas Identificadas</h3>
+            <ul id="lista-lacunas"></ul>
+        </section>
+
+        <!-- Recomendações -->
+        <section id="recomendacoes">
+            <h3>Recomendações de Reforma</h3>
+            <ul id="lista-recomendacoes"></ul>
+        </section>
+
+        <a href="index.html" class="btn">← Nova Simulação</a>
+    </main>
+
+    <footer>
+        <p>Arquiteturas da Dúvida · www.arquiteturasdaduvida.org</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Recuperar dados do localStorage
+            const total = parseInt(localStorage.getItem('icvejTotal')) || 0;
+            const scores = JSON.parse(localStorage.getItem('icvejScores')) || {
+                transparencia: 0,
+                mecanismos: 0,
+                velocidade: 0,
+                aprendizado: 0,
+                prevencao: 0
+            };
+
+            // 1. Exibir total
+            document.getElementById('icvejValor').textContent = total;
+
+            // 2. Classificação
+            const divClass = document.getElementById('classificacao');
+            let classe = '';
+            if (total >= 76) {
+                classe =
+                '[ AVANÇADO ] – Sistema com alta capacidade de detecção, correção e aprendizado.';
+            } else if (total >= 51) {
+                classe = '[ Regular ] – Sistema funcional, com lacunas estruturais relevantes.';
+            } else if (total >= 26) {
+                classe = '[ Insuficiente ] – Sistema vulnerável a erros sistêmicos.';
+            } else {
+                classe = '[ CRÍTICO ] – Regime de invisibilidade deliberada.';
+            }
+            divClass.innerHTML = `<p><strong>${classe}</strong></p>`;
+
+            // 3. Preparar dados para gráficos
+            const labels = ['Transparência', 'Mecanismos', 'Velocidade', 'Aprendizado', 'Prevenção'];
+            const maxPorDim = { transparencia: 20, mecanismos: 25, velocidade: 20, aprendizado: 20, prevencao: 15 };
+            const dimKeys = ['transparencia', 'mecanismos', 'velocidade', 'aprendizado', 'prevencao'];
+
+            // Pontuação percentual por dimensão (0-100)
+            const userPercent = dimKeys.map(key => (scores[key] / maxPorDim[key]) * 100);
+
+            // Média nacional (13/100) aplicada igualmente nas 5 dimensões
+            const nacionalPercent = [13, 13, 13, 13, 13];
+
+            // 4. Gráfico Radar
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Seu Estado',
+                        data: userPercent,
+                        backgroundColor: 'rgba(0,0,0,0.1)',
+                        borderColor: '#000',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#000',
+                        pointBorderColor: '#000',
+                    }, {
+                        label: 'Média Nacional (Brasil)',
+                        data: nacionalPercent,
+                        backgroundColor: 'rgba(0,0,0,0.05)',
+                        borderColor: '#888',
+                        borderWidth: 2,
+                        borderDash: [6, 4],
+                        pointBackgroundColor: '#888',
+                        pointBorderColor: '#888',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: { stepSize: 20, color: '#000' },
+                            grid: { color: '#ccc' },
+                            angleLines: { color: '#ccc' },
+                            pointLabels: { color: '#000', font: { size: 12 } }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#000', font: { size: 12 } } }
+                    }
+                }
+            });
+
+            // 5. Gráfico de Barras (Internacional)
+            const ctxBarras = document.getElementById('barrasChart').getContext('2d');
+            const paises = ['Seu Estado', 'Brasil (média)', 'Canadá', 'Reino Unido', 'EUA', 'Holanda', 'Portugal'];
+            const valores = [total, 13, 90, 82, 73, 75, 68];
+            const coresBg = paises.map(p => p === 'Seu Estado' ? '#000' : '#999');
+
+            new Chart(ctxBarras, {
+                type: 'bar',
+                data: {
+                    labels: paises,
+                    datasets: [{
+                        label: 'ICVEJ',
+                        data: valores,
+                        backgroundColor: coresBg,
+                        borderColor: '#000',
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: { min: 0, max: 100, grid: { color: '#ccc' }, ticks: { color: '#000' } },
+                        y: { grid: { display: false }, ticks: { color: '#000' } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.x} / 100` } }
+                    }
+                }
+            });
+
+            // 6. Lacunas (dimensões com percentual < 50%)
+            const lacunas = [];
+            dimKeys.forEach((key, i) => {
+                const percent = userPercent[i];
+                if (percent < 50) {
+                    lacunas.push({ nome: labels[i], valor: Math.round(percent) });
+                }
+            });
+
+            const ulLacunas = document.getElementById('lista-lacunas');
+            if (lacunas.length === 0) {
+                ulLacunas.innerHTML = '<li>Nenhuma lacuna crítica identificada.</li>';
+            } else {
+                lacunas.forEach(l => {
+                    const li = document.createElement('li');
+                    li.textContent = `${l.nome}: ${l.valor}% (abaixo do ideal)`;
+                    ulLacunas.appendChild(li);
+                });
+            }
+
+            // 7. Recomendações
+            const recomendacoesMap = {
+                'Transparência': 'Instituir registro nacional padronizado de erros judiciais, com dados abertos e atualização em tempo real.',
+                'Mecanismos': 'Criar unidades especializadas com autonomia funcional e composição multidisciplinar, adotando protocolos de triagem por red flags.',
+                'Velocidade': 'Estabelecer metas legais para julgamento de revisões criminais e reduzir prazos processuais.',
+                'Aprendizado': 'Criar comissões de inquérito permanentes e sistemas de memória institucional para aprender com erros.',
+                'Prevenção': 'Implementar checklists cognitivos, blinding pericial e treinamentos validados em vieses cognitivos.'
+            };
+
+            const ulRecom = document.getElementById('lista-recomendacoes');
+            if (lacunas.length === 0) {
+                ulRecom.innerHTML =
+                    '<li>Parabéns! Seu sistema apresenta boa visibilidade do erro judicial. Mantenha e aprimore as boas práticas.</li>';
+            } else {
+                lacunas.forEach(l => {
+                    const li = document.createElement('li');
+                    const rec = recomendacoesMap[l.nome] || 'Revisar práticas institucionais.';
+                    li.innerHTML = `<strong>${l.nome}:</strong> ${rec}`;
+                    ulRecom.appendChild(li);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
