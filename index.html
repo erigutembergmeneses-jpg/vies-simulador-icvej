@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICVEJ – Resultados</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>⚖️ ICVEJ – Relatório Personalizado</h1>
+    </header>
+    <main>
+        <section id="resultadoTotal">
+            <h2>Seu ICVEJ: <span id="icvejValor"></span>/100</h2>
+            <div id="classificacao"></div>
+        </section>
+
+        <section id="comparativo">
+            <h3>Comparativo</h3>
+            <div style="display:flex; flex-wrap:wrap; gap:2rem;">
+                <div style="flex:1; min-width:300px;">
+                    <canvas id="radarChart" width="400" height="400"></canvas>
+                </div>
+                <div style="flex:1; min-width:300px;">
+                    <canvas id="barrasChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="lacunas">
+            <h3>Lacunas Identificadas</h3>
+            <ul id="lista-lacunas"></ul>
+        </section>
+
+        <section id="recomendacoes">
+            <h3>Recomendações de Reforma</h3>
+            <ul id="lista-recomendacoes"></ul>
+        </section>
+
+        <a href="index.html" class="btn">← Nova Simulação</a>
+    </main>
+    <footer>
+        <p>Arquiteturas da Dúvida · www.arquiteturasdaduvida.org</p>
+    </footer>
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const total = parseInt(localStorage.getItem('icvejTotal')) || 0;
+            const scores = JSON.parse(localStorage.getItem('icvejScores')) || {
+                transparencia: 0, mecanismos: 0, velocidade: 0, aprendizado: 0, prevencao: 0
+            };
+
+            // Exibir total
+            document.getElementById('icvejValor').textContent = total;
+            const classificacao = document.getElementById('classificacao');
+            let classe = '';
+            if (total >= 76) classe = '[ AVANÇADO ] – Sistema com alta capacidade de detecção, correção e aprendizado.';
+            else if (total >= 51) classe = '[ Regular ] – Sistema funcional, com lacunas estruturais relevantes.';
+            else if (total >= 26) classe = '[ Insuficiente ] – Sistema vulnerável a erros sistêmicos.';
+            else classe = '[ CRÍTICO ] – Regime de invisibilidade deliberada.';
+            classificacao.innerHTML = `<p><strong>${classe}</strong></p>`;
+
+            // Dados para gráficos
+            const labels = ['Transparência', 'Mecanismos', 'Velocidade', 'Aprendizado', 'Prevenção'];
+            // Converter scores para escala 0-100 para radar (já estão normalizadas)
+            const maxPorDim = { transparencia: 20, mecanismos: 25, velocidade: 20, aprendizado: 20, prevencao: 15 };
+            const scoresPercent = labels.map((l, i) => {
+                const dim = ['transparencia','mecanismos','velocidade','aprendizado','prevencao'][i];
+                return (scores[dim] / maxPorDim[dim]) * 100;
+            });
+
+            // Médias para comparação (Brasil nacional e internacional)
+            const mediaNacional = 13; // ICVEJ Brasil
+            const internacional = { 'Canadá': 90, 'Reino Unido': 82, 'EUA': 73, 'Holanda': 75, 'Portugal': 68 };
+
+            // Radar
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Seu Estado',
+                            data: scoresPercent,
+                            backgroundColor: 'rgba(0,0,0,0.1)',
+                            borderColor: '#000',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#000',
+                        },
+                        {
+                            label: 'Média Nacional (Brasil)',
+                            data: [13,13,13,13,13], // Simplificado, cada dim média 13/100
+                            backgroundColor: 'rgba(0,0,0,0.05)',
+                            borderColor: '#888',
+                            borderWidth: 1,
+                            borderDash: [5,5],
+                            pointBackgroundColor: '#888',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: { stepSize: 20 }
+                        }
+                    }
+                }
+            });
+
+            // Barras comparativas internacionais
+            const ctxBarras = document.getElementById('barrasChart').getContext('2d');
+            const paises = ['Seu Estado', 'Brasil (média)', ...Object.keys(internacional)];
+            const valores = [total, mediaNacional, ...Object.values(internacional)];
+            new Chart(ctxBarras, {
+                type: 'bar',
+                data: {
+                    labels: paises,
+                    datasets: [{
+                        label: 'ICVEJ',
+                        data: valores,
+                        backgroundColor: paises.map(p => p === 'Seu Estado' ? '#000' : '#aaa'),
+                        borderColor: '#000',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { min: 0, max: 100 }
+                    }
+                }
+            });
+
+            // Lacunas e recomendações
+            const lacunas = [];
+            const dims = ['transparencia','mecanismos','velocidade','aprendizado','prevencao'];
+            const nomesDim = ['Transparência','Mecanismos de Revisão','Velocidade de Correção','Aprendizado Institucional','Prevenção Prospectiva'];
+            dims.forEach((dim, i) => {
+                const pontuacao = (scores[dim] / maxPorDim[dim]) * 100; // percentual
+                if (pontuacao < 50) lacunas.push({ nome: nomesDim[i], valor: Math.round(pontuacao) });
+            });
+
+            const lacunasList = document.getElementById('lista-lacunas');
+            if (lacunas.length === 0) {
+                lacunasList.innerHTML = '<li>Nenhuma lacuna crítica identificada.</li>';
+            } else {
+                lacunas.forEach(l => {
+                    const li = document.createElement('li');
+                    li.textContent = `${l.nome}: ${l.valor}% (abaixo do ideal)`;
+                    lacunasList.appendChild(li);
+                });
+            }
+
+            // Recomendações baseadas nas lacunas
+            const recomendacoes = {
+                'Transparência': 'Instituir registro nacional padronizado de erros judiciais, com dados abertos e atualização em tempo real.',
+                'Mecanismos de Revisão': 'Criar unidades especializadas com autonomia funcional e composição multidisciplinar, adotando protocolos de triagem por red flags.',
+                'Velocidade de Correção': 'Estabelecer metas legais para julgamento de revisões criminais e reduzir prazos processuais.',
+                'Aprendizado Institucional': 'Criar comissões de inquérito permanentes e sistemas de memória institucional para aprender com erros.',
+                'Prevenção Prospectiva': 'Implementar checklists cognitivos, blinding pericial e treinamentos validados em vieses cognitivos.'
+            };
+
+            const recList = document.getElementById('lista-recomendacoes');
+            lacunas.forEach(l => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${l.nome}:</strong> ${recomendacoes[l.nome] || 'Revisar práticas institucionais.'}`;
+                recList.appendChild(li);
+            });
+            if (lacunas.length === 0) {
+                recList.innerHTML = '<li>Parabéns! Seu sistema apresenta boa visibilidade do erro judicial. Mantenha e aprimore as boas práticas.</li>';
+            }
+        });
+    </script>
+</body>
+</html>
