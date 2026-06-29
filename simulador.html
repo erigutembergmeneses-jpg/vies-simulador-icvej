@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ICVEJ – Questionário</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <header>
+        <h1>⚖️ ICVEJ – Questionário</h1>
+        <p>Responda às 15 perguntas abaixo. O cálculo é feito automaticamente.</p>
+    </header>
+
+    <main>
+        <form id="icvejForm">
+            <div id="perguntas"></div>
+            <button type="submit" class="btn">📊 Calcular ICVEJ</button>
+        </form>
+    </main>
+
+    <footer>
+        <p>Arquiteturas da Dúvida · www.arquiteturasdaduvida.org</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('perguntas');
+
+            // 15 perguntas distribuídas nas 5 dimensões
+            const perguntas = [
+                // Transparência (máx 20)
+                { dim: 'transparencia', texto: 'Existe registro nacional padronizado de erros judiciais?', opcoes: ['Sim (8)', 'Parcial (4)', 'Não (0)'], valores: [8, 4, 0] },
+                { dim: 'transparencia', texto: 'Os dados são públicos em formato aberto?', opcoes: ['Sim (6)', 'Parcial (3)', 'Não (0)'], valores: [6, 3, 0] },
+                { dim: 'transparencia', texto: 'Há atualização em tempo real?', opcoes: ['Sim (6)', 'Parcial (3)', 'Não (0)'], valores: [6, 3, 0] },
+
+                // Mecanismos (máx 25)
+                { dim: 'mecanismos', texto: 'Existem unidades especializadas com autonomia funcional?', opcoes: ['Sim (9)', 'Parcial (5)', 'Não (0)'], valores: [9, 5, 0] },
+                { dim: 'mecanismos', texto: 'Composição multidisciplinar?', opcoes: ['Sim (8)', 'Parcial (4)', 'Não (0)'], valores: [8, 4, 0] },
+                { dim: 'mecanismos', texto: 'Protocolos de triagem por red flags?', opcoes: ['Sim (8)', 'Parcial (4)', 'Não (0)'], valores: [8, 4, 0] },
+
+                // Velocidade (máx 20)
+                { dim: 'velocidade', texto: 'Tempo médio entre identificação do erro e absolvição (em meses)?', opcoes: ['< 12 (8)', '12-36 (4)', '> 36 (0)'], valores: [8, 4, 0] },
+                { dim: 'velocidade', texto: 'Tempo médio de análise de revisão criminal (em meses)?', opcoes: ['< 6 (6)', '6-18 (3)', '> 18 (0)'], valores: [6, 3, 0] },
+                { dim: 'velocidade', texto: 'Há metas legais para julgamento de revisões?', opcoes: ['Sim (6)', 'Parcial (3)', 'Não (0)'], valores: [6, 3, 0] },
+
+                // Aprendizado (máx 20)
+                { dim: 'aprendizado', texto: 'Existem comissões de inquérito para erros judiciais?', opcoes: ['Sim (8)', 'Parcial (4)', 'Não (0)'], valores: [8, 4, 0] },
+                { dim: 'aprendizado', texto: 'Reformas estruturais são vinculadas a erros identificados?', opcoes: ['Sim (6)', 'Parcial (3)', 'Não (0)'], valores: [6, 3, 0] },
+                { dim: 'aprendizado', texto: 'Há memória institucional ritualizada?', opcoes: ['Sim (6)', 'Parcial (3)', 'Não (0)'], valores: [6, 3, 0] },
+
+                // Prevenção (máx 15)
+                { dim: 'prevencao', texto: 'Implementação de checklists cognitivos?', opcoes: ['Sim (5)', 'Parcial (3)', 'Não (0)'], valores: [5, 3, 0] },
+                { dim: 'prevencao', texto: 'Blinding pericial (cegamento de especialistas)?', opcoes: ['Sim (5)', 'Parcial (3)', 'Não (0)'], valores: [5, 3, 0] },
+                { dim: 'prevencao', texto: 'Treinamento validado em vieses cognitivos?', opcoes: ['Sim (5)', 'Parcial (3)', 'Não (0)'], valores: [5, 3, 0] }
+            ];
+
+            // Montar o formulário dinamicamente
+            perguntas.forEach((p, idx) => {
+                const div = document.createElement('div');
+                div.className = 'pergunta';
+                div.innerHTML = `<p><strong>${idx + 1}.</strong> ${p.texto}</p>`;
+
+                const select = document.createElement('select');
+                select.name = `q${idx}`;
+                select.dataset.dim = p.dim;
+                select.dataset.valores = JSON.stringify(p.valores);
+
+                p.opcoes.forEach((op, i) => {
+                    const option = document.createElement('option');
+                    option.value = p.valores[i];
+                    option.textContent = op;
+                    if (i === 0) option.selected = true; // valor padrão
+                    select.appendChild(option);
+                });
+
+                div.appendChild(select);
+                container.appendChild(div);
+            });
+
+            // Submissão do formulário
+            document.getElementById('icvejForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const selects = document.querySelectorAll('select');
+                let scores = {
+                    transparencia: 0,
+                    mecanismos: 0,
+                    velocidade: 0,
+                    aprendizado: 0,
+                    prevencao: 0
+                };
+
+                selects.forEach(select => {
+                    const dim = select.dataset.dim;
+                    const val = parseFloat(select.value);
+                    scores[dim] += val;
+                });
+
+                // Pesos de cada dimensão
+                const pesos = {
+                    transparencia: 0.20,
+                    mecanismos: 0.25,
+                    velocidade: 0.20,
+                    aprendizado: 0.20,
+                    prevencao: 0.15
+                };
+
+                let total = 0;
+                for (let dim in scores) {
+                    total += scores[dim] * pesos[dim];
+                }
+                total = Math.round(total);
+
+                // Salvar no localStorage para a página de resultados
+                localStorage.setItem('icvejTotal', total);
+                localStorage.setItem('icvejScores', JSON.stringify(scores));
+
+                // Redirecionar para a página de resultados
+                window.location.href = 'resultados.html';
+            });
+        });
+    </script>
+</body>
+</html>
