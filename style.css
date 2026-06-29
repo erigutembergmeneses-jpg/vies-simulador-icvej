@@ -1,0 +1,91 @@
+/* Reset e base */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Georgia', serif;
+    background: #fff;
+    color: #000;
+    line-height: 1.6;
+    padding: 1rem;
+}
+header {
+    border-bottom: 2px solid #000;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+header h1 { font-size: 2.5rem; letter-spacing: -1px; }
+header p { font-size: 1.2rem; color: #333; }
+
+main { max-width: 900px; margin: 0 auto; }
+
+.btn {
+    display: inline-block;
+    background: #000;
+    color: #fff;
+    padding: 0.8rem 2rem;
+    text-decoration: none;
+    font-weight: bold;
+    border: 2px solid #000;
+    margin: 1rem 0;
+    transition: 0.3s;
+    cursor: pointer;
+}
+.btn:hover {
+    background: #fff;
+    color: #000;
+}
+
+/* Página inicial */
+.intro { text-align: center; margin: 3rem 0; }
+.intro h2 { font-size: 2rem; }
+.info { background: #f5f5f5; padding: 1.5rem; border-left: 6px solid #000; }
+
+/* Formulário */
+.pergunta {
+    margin: 2rem 0;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #ccc;
+}
+.pergunta select {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    background: #fff;
+    border: 1px solid #000;
+    margin-top: 0.5rem;
+}
+.pergunta select:focus { outline: 2px solid #000; }
+
+/* Resultados */
+#resultado {
+    background: #f5f5f5;
+    padding: 1.5rem;
+    border: 2px solid #000;
+    margin-top: 2rem;
+}
+#resultado h2 { margin-top: 0; }
+
+/* Gráficos */
+canvas { max-width: 100%; background: #fff; border: 1px solid #ccc; }
+
+/* Listas */
+ul { list-style: square; padding-left: 2rem; }
+li { margin: 0.5rem 0; }
+
+/* Rodapé */
+footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ccc;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+    header h1 { font-size: 1.8rem; }
+    .btn { width: 100%; text-align: center; }
+    .pergunta select { font-size: 0.9rem; }
+}
